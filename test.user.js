@@ -8,4 +8,4 @@
 // @grant        none
 // ==/UserScript==
 
-alert('hello, world!')
+alert('Hello, World!')
