@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         select tool
-// @version      2024-04-01
+// @version      2024-04-01.1
 // @description  oh god another one !?!
 // @author       pie42
 // @match        https://www.freeriderhd.com/*
@@ -171,7 +171,7 @@ function load() {
                 if (hovered != selected)
                     selectOffset = vector();
                 else {
-                    remove(tempSelect?.[0]);
+                    tempSelect?.forEach(i=>remove(i));
                     tempSelect = undefined;
                     isSelectIntangible = true;
                     if (selectPoint && connected) {
@@ -287,7 +287,7 @@ function load() {
                     // remove the line if it's been temporarily recreated
                     if (!isSelectIntangible) {
                         isSelectIntangible = true;
-                        remove(tempSelect?.[0]);
+                        tempSelect?.forEach?.(i=>remove(i));
                         tempSelect = undefined;
                         remove(connected);
                     }
@@ -786,7 +786,7 @@ function load() {
                     if (!cell || !cell.length || cell.mark) continue;
                     for (let i of cell) {
                         if (i.temp) continue;
-                        let line = recreate(i);
+                        let line = recreate(i, selectOffset);
                         tempSelect.push(line);
                         i.temp = true;
                     }
@@ -846,7 +846,7 @@ function load() {
                     moveAccumulator += moveSpeed;
                     if (!isSelectIntangible) {
                         isSelectIntangible = true;
-                        remove(tempSelect?.[0]);
+                        tempSelect?.forEach?.(i=>remove(i));
                         tempSelect = undefined;
                         remove(connected);
                     }
