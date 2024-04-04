@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         select tool
-// @version      2024-04-01.1
+// @version      2024-04-01.2
 // @description  oh god another one !?!
 // @author       pie42
 // @match        https://www.freeriderhd.com/*
@@ -114,6 +114,8 @@ function load() {
                     a = [a[0], recreate(connected)];
                     connected = connected.newVersion;
                 }
+                tempSelect?.forEach?.(i=>remove(i));
+                tempSelect = undefined;
                 if (selectOffset.x || selectOffset.y) {
                     let {x, y} = selectOffset;
                     this.scene.toolHandler.addActionToTimeline({
@@ -151,8 +153,10 @@ function load() {
             }
             if (isSelectList && (hovered || !pointrect(this.mouse.touch.real, this.p1, this.p2))) {
                 for (let i of selectList) {
-                    remove(connected);
+                    remove(i);
                 }
+                tempSelect?.forEach?.(i=>remove(i));
+                tempSelect = undefined;
                 let a = selectList.map(s => recreate(s));
                 if (selectOffset.x || selectOffset.y) {
                     let {x, y} = selectOffset;
@@ -171,7 +175,7 @@ function load() {
                 if (hovered != selected)
                     selectOffset = vector();
                 else {
-                    tempSelect?.forEach(i=>remove(i));
+                    tempSelect?.forEach?.(i=>remove(i));
                     tempSelect = undefined;
                     isSelectIntangible = true;
                     if (selectPoint && connected) {
@@ -607,12 +611,16 @@ function load() {
                 return;
             }
             //*//
-            toRevert.objects = toRevert.objects.map(i => {
+            toRevert.objects = toRevert.objects.map((i, j) => {
                 if (i.remove) {
                     while (i.newVersion)
                         i = i.newVersion;
                 }
                 remove(i);
+                if (i.p1 && toRevert.points?.[j]) {
+                    i[toRevert.points[j]].inc({x: -toRevert.move.x, y: -toRevert.move.y});
+                    return recreate(i);
+                }
                 return recreate(i, {x: -toRevert.move.x, y: -toRevert.move.y});
             });
             //*/
@@ -655,12 +663,16 @@ function load() {
                 return;
             }
             //*//
-            toRevert.objects = toRevert.objects.map(i => {
+            toRevert.objects = toRevert.objects.map((i, j) => {
                 if (i.remove) {
                     while (i.newVersion)
                         i = i.newVersion;
                 }
                 remove(i);
+                if (i.p1 && toRevert.points?.[j]) {
+                    i[toRevert.points[j]].inc(toRevert.move);
+                    return recreate(i);
+                }
                 return recreate(i, {x: toRevert.move.x, y: toRevert.move.y});
             });
             //*/
@@ -1016,7 +1028,9 @@ function load() {
         if (!object) return;
         object.remove = true;
         if (polyMod) {
+            object.markSectorsDirty();
             object.redrawSectors();
+            object.sectors = [];
         } else {
             object.removeAllReferences();
         }
