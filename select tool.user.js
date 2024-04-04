@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         select tool
-// @version      2024-01-11
+// @version      2024-04-01
 // @description  oh god another one !?!
 // @author       pie42
 // @match        https://www.freeriderhd.com/*
@@ -66,6 +66,12 @@ function load() {
                 if (!this[i])
                     this.__proto__[i] = supa[i];
             }
+            if (polyMod) {
+                for (let i of Object.getOwnPropertyNames(supa.__proto__)) {
+                    if (!this[i])
+                        this.__proto__[i] = supa[i];
+                }
+            }
             this.supa = supa;
             this.toolUpdate = supa.update;
             console.log(supa, this);
@@ -104,7 +110,7 @@ function load() {
             if (selected && selected != hovered) {
                 let a = [recreate(selected)];
                 if (selectPoint && connected) {
-                    connected.removeAllReferences();
+                    remove(connected);
                     a = [a[0], recreate(connected)];
                     connected = connected.newVersion;
                 }
@@ -145,7 +151,7 @@ function load() {
             }
             if (isSelectList && (hovered || !pointrect(this.mouse.touch.real, this.p1, this.p2))) {
                 for (let i of selectList) {
-                    i.removeAllReferences();
+                    remove(connected);
                 }
                 let a = selectList.map(s => recreate(s));
                 if (selectOffset.x || selectOffset.y) {
@@ -165,11 +171,11 @@ function load() {
                 if (hovered != selected)
                     selectOffset = vector();
                 else {
-                    tempSelect?.[0]?.removeAllReferences?.();
+                    remove(tempSelect?.[0]);
                     tempSelect = undefined;
                     isSelectIntangible = true;
                     if (selectPoint && connected) {
-                        connected.removeAllReferences();
+                        remove(connected);
                         recreate(connected);
                         connected = undefined;
                     }
@@ -179,7 +185,7 @@ function load() {
                 window.selected = hovered;
                 if (selected) {
                     console.log('selected', selected);
-                    selected.removeAllReferences();
+                    remove(selected);
                     let minDist = HOVER_DIST / this.scene.camera.zoom,
                         minPoint = undefined;
                     if (selected.p1) {
@@ -197,7 +203,7 @@ function load() {
                                 sector = sectors[Math.floor(sectorPos.x)]?.[Math.floor(sectorPos.y)],
                                 lines = sector?.['highlight' in selected ? "physicsLines" : "sceneryLines"] || [];
                             if (connected && !connected.newVersion) {
-                                connected.removeAllReferences();
+                                remove(connected);
                                 recreate(connected);
                             }
                             connected = undefined;
@@ -213,7 +219,7 @@ function load() {
                                 }
                             }
                             if (connected) {
-                                connected.removeAllReferences();
+                                remove(connected);
                                 console.log('connected to', connected);
                             }
                         }
@@ -281,15 +287,13 @@ function load() {
                     // remove the line if it's been temporarily recreated
                     if (!isSelectIntangible) {
                         isSelectIntangible = true;
-                        tempSelect?.[0]?.removeAllReferences?.();
+                        remove(tempSelect?.[0]);
                         tempSelect = undefined;
-                        if (connected) {
-                            connected.removeAllReferences();
-                        }
+                        remove(connected);
                     }
                     if (tempSelect && tempSelect.length) {
                         for (let i of tempSelect) {
-                            i.removeAllReferences();
+                            remove(i);
                         }
                         for (let x in selectPhysicsList) {
                             let row = selectPhysicsList[x];
@@ -454,7 +458,7 @@ function load() {
                 isHoverList = false;
                 selectOffset = vector();
                 for (let i of selectList) {
-                    i.removeAllReferences();
+                    remove(i);
                 }
                 console.log('selected!', selectList);
             }
@@ -608,14 +612,14 @@ function load() {
                     while (i.newVersion)
                         i = i.newVersion;
                 }
-                i.removeAllReferences();
+                remove(i);
                 return recreate(i, {x: -toRevert.move.x, y: -toRevert.move.y});
             });
             //*/
             /*//
             toRevert.objects.forEach(i => {
                 while (i.newVersion) i = i.newVersion;
-                i.removeAllReferences();
+                remove(i);
             });
             scene.track.cleanTrack();
             toRevert.objects.forEach((i, j) => {
@@ -656,14 +660,14 @@ function load() {
                     while (i.newVersion)
                         i = i.newVersion;
                 }
-                i.removeAllReferences();
+                remove(i);
                 return recreate(i, {x: toRevert.move.x, y: toRevert.move.y});
             });
             //*/
             /*//
             toRevert.objects.forEach(i => {
                 while (i.newVersion) i = i.newVersion;
-                i.removeAllReferences();
+                remove(i);
             });
             scene.track.cleanTrack();
             toRevert.objects.forEach((i, j) => {
@@ -842,11 +846,9 @@ function load() {
                     moveAccumulator += moveSpeed;
                     if (!isSelectIntangible) {
                         isSelectIntangible = true;
-                        tempSelect?.[0]?.removeAllReferences?.();
+                        remove(tempSelect?.[0]);
                         tempSelect = undefined;
-                        if (connected) {
-                            connected.removeAllReferences();
-                        }
+                        remove(connected);
                     }
                 } else {
                     moveSpeed = 0.3;
@@ -1010,6 +1012,16 @@ function load() {
         }
     });
 
+    function remove(object) {
+        if (!object) return;
+        object.remove = true;
+        if (polyMod) {
+            object.redrawSectors();
+        } else {
+            object.removeAllReferences();
+        }
+    }
+
     function recreate(object, offset = selectOffset) {
         if (!object) return;
         if ('highlight' in object) {
@@ -1142,11 +1154,11 @@ function doAMario(selector) {
 }
 
 function rInterval() {
-    window.clearInterval(v);
+    window.clearInterval(v)
 }
 var v = window.setInterval(function() {
     if (GameManager != undefined && GameManager.game != undefined) {
         rInterval();
         load();
     }
-}, 250);
+}, 250)
