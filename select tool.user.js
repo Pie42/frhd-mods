@@ -1030,7 +1030,7 @@ function load() {
         if (polyMod) {
             object.markSectorsDirty();
             object.redrawSectors();
-            object.sectors = [];
+            object.sectors = [{scene}];
         } else {
             object.removeAllReferences();
         }
